@@ -1,0 +1,32 @@
+{
+  "name": "ngx-magazine",
+  "version": "0.0.1",
+  "description": "Angular components to show HTML content as an interactive magazine with realistic 3D page flipping, and a 3D collection of magazines that open in a modal.",
+  "keywords": [
+    "angular",
+    "magazine",
+    "flipbook",
+    "page-flip",
+    "3d",
+    "css-3d",
+    "ngx"
+  ],
+  "license": "MIT",
+  "author": "José María Vélez González",
+  "homepage": "https://github.com/josem97/ngx-magazine#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josem97/ngx-magazine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/josem97/ngx-magazine/issues"
+  },
+  "peerDependencies": {
+    "@angular/common": "^22.2.0",
+    "@angular/core": "^22.2.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

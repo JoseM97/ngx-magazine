@@ -1,0 +1,97 @@
+<main class="demo">
+  <h1>Demo de ngx-magazine</h1>
+
+  <h2>Colección</h2>
+  <p>Pasa el ratón o enfoca con el teclado una portada y pulsa Enter, Espacio o haz clic.</p>
+
+  <ngx-magazine-collection
+    label="Colección de revistas"
+    (magazineSelect)="onSelect($event)"
+    (magazineClose)="onClose($event)"
+  >
+    @for (m of magazines; track m.id) {
+      <ngx-magazine-item [id]="m.id" [label]="m.title" [spineColor]="m.color">
+        <ngx-magazine>
+          <ng-template ngxMagazinePage>
+            <section
+              [style.background]="m.color"
+              style="display:grid;place-items:center;height:100%;color:#fff;text-align:center;"
+            >
+              <div>
+                <h3 style="margin:0;font-size:1.6rem;letter-spacing:.08em;">{{ m.title }}</h3>
+                <p style="margin:.4rem 0 0;">Portada</p>
+              </div>
+            </section>
+          </ng-template>
+
+          @for (n of interiorPages; track n) {
+            <ng-template ngxMagazinePage>
+              <section style="padding:1.5rem;height:100%;box-sizing:border-box;">
+                <h4>{{ m.title }}: página {{ n }}</h4>
+                <p>Contenido de la página {{ n }}.</p>
+              </section>
+            </ng-template>
+          }
+        </ngx-magazine>
+      </ngx-magazine-item>
+    }
+  </ngx-magazine-collection>
+
+  <h2>Revista individual (comportamiento actual)</h2>
+  <p>Prueba la navegación y la animación de las páginas.</p>
+
+  <ngx-magazine (pageChange)="onPageChange($event)">
+    <ng-template ngxMagazinePage>
+      <section class="page cover">
+        <h2>MI REVISTA</h2>
+        <p>Portada</p>
+      </section>
+    </ng-template>
+
+    <ng-template ngxMagazinePage>
+      <section class="page">
+        <h2>Página 2</h2>
+        <p>Contenido de la segunda página.</p>
+      </section>
+    </ng-template>
+
+    <ng-template ngxMagazinePage>
+      <section class="page">
+        <h2>Página 3</h2>
+        <p>Contenido de la tercera página.</p>
+      </section>
+    </ng-template>
+
+    <ng-template ngxMagazinePage>
+      <section class="page">
+        <h2>Página 4</h2>
+        <p>Contenido de la cuarta página.</p>
+      </section>
+    </ng-template>
+
+    <ng-template ngxMagazinePage>
+      <section class="page">
+        <h2>Página 5</h2>
+        <p>Fin de la revista.</p>
+      </section>
+    </ng-template>
+
+    <!-- Imagen a página completa -->
+    <ng-template ngxMagazinePage>
+      <img src="foto.jpg" alt="" style="width:100%;height:100%;object-fit:cover;display:block" />
+    </ng-template>
+
+    <!-- Imagen parcial con texto, sobre un color propio -->
+    <ng-template ngxMagazinePage>
+      <section style="height:100%;background:#1d3557;color:#fff;padding:1.5rem;box-sizing:border-box">
+        <img src="foto.jpg" alt="" style="width:60%;border-radius:8px" />
+        <h2>Título</h2>
+      </section>
+    </ng-template>
+
+    <!-- Vídeo -->
+    <ng-template ngxMagazinePage>
+      <video src="clip.mp4" controls style="width:100%;height:100%;object-fit:cover;display:block"></video>
+    </ng-template>
+  </ngx-magazine>
+</main>
