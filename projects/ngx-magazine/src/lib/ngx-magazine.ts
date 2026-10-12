@@ -80,7 +80,7 @@ const FLIP_FALLBACK_MS = FLIP_DURATION_MS + 400;
  * - `--ngx-magazine-radius`: radio de las esquinas exteriores de las páginas
  *   (por defecto 3px; 0 dentro de una colección).
  * - `--ngx-magazine-controls-space`: espacio reservado bajo el libro para
- *   los controles (por defecto 56px).
+ *   los controles (por defecto 56px; 68px en pantallas táctiles).
  */
 @Component({
   selector: 'ngx-magazine',
@@ -538,6 +538,26 @@ const FLIP_FALLBACK_MS = FLIP_DURATION_MS + 400;
     .magazine__counter span {
       margin-left: 0.25em;
       opacity: 0.6;
+    }
+
+    /*
+     * Pantallas táctiles: zonas de pulsación de 44px y más espacio bajo el
+     * libro para que la píldora (44px + márgenes) no se solape con él.
+     */
+    @media (pointer: coarse) {
+      .magazine-wrap {
+        padding-bottom: var(--ngx-magazine-controls-space, 68px);
+      }
+
+      .magazine__previous,
+      .magazine__next {
+        width: 44px;
+        height: 44px;
+      }
+
+      .magazine__counter {
+        min-width: 72px;
+      }
     }
 
     /* Dentro de una colección: esquinas rectas por defecto. */

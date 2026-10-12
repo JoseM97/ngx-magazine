@@ -119,6 +119,29 @@ function toReading(
   endFlip(fixture); // opening → reading
 }
 
+/**
+ * Pulsa una tecla en la modal. Devuelve el evento para poder comprobar
+ * `defaultPrevented`. Por defecto el evento nace en el propio diálogo.
+ */
+function pressKey(
+  fixture: AnyFixture,
+  key: string,
+  init: KeyboardEventInit = {},
+  target: Element | null = dialog(fixture),
+): KeyboardEvent {
+  const event = new KeyboardEvent('keydown', {
+    key,
+    bubbles: true,
+    cancelable: true,
+    ...init,
+  });
+
+  target!.dispatchEvent(event);
+  cdAll(fixture);
+
+  return event;
+}
+
 async function setup() {
   const fixture = TestBed.createComponent(CollectionHost);
   await fixture.whenStable();
@@ -736,6 +759,204 @@ describe('NgxMagazineCollection', () => {
       expect(collection.selectedId()).toBeNull();
       expect(closed.length).toBe(1);
       expect(dialog(fixture)).toBeNull();
+    });
+  });
+
+  describe('keyboard', () => {
+    it('should open the magazine with ArrowRight once the modal is shown', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      collection.select('a');
+      fixture.detectChanges();
+      endModalTransition(fixture);
+
+      const event = pressKey(fixture, 'ArrowRight');
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(magazineAt(fixture, 0).state()).toBe('opening');
+      expect(collection.phase()).toBe('opening');
+
+      endFlip(fixture);
+
+      expect(collection.phase()).toBe('reading');
+      expect(magazineAt(fixture, 0).currentSpread()).toBe(1);
+    });
+
+    it('should ignore the arrows while the modal is still appearing', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      collection.select('a');
+      fixture.detectChanges();
+
+      const event = pressKey(fixture, 'ArrowRight');
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(magazineAt(fixture, 0).state()).toBe('closed');
+      expect(collection.phase()).toBe('entering');
+    });
+
+    it('should go forward and back with the arrows while reading', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      toReading(fixture, collection, 'a');
+
+      const magazine = magazineAt(fixture, 0);
+      expect(magazine.currentSpread()).toBe(1);
+
+      pressKey(fixture, 'ArrowRight');
+      expect(magazine.isAnimating()).toBe(true);
+      endFlip(fixture);
+      expect(magazine.currentSpread()).toBe(2);
+
+      pressKey(fixture, 'ArrowLeft');
+      expect(magazine.isAnimating()).toBe(true);
+      endFlip(fixture);
+      expect(magazine.currentSpread()).toBe(1);
+      expect(collection.phase()).toBe('reading');
+    });
+
+    it('should close the book with ArrowLeft from spread 1 and reopen it with ArrowRight', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      toReading(fixture, collection, 'a');
+
+      const magazine = magazineAt(fixture, 0);
+
+      pressKey(fixture, 'ArrowLeft');
+      expect(magazine.state()).toBe('closing');
+      endFlip(fixture);
+
+      expect(magazine.state()).toBe('closed');
+      expect(collection.phase()).toBe('reading');
+      expect(dialog(fixture)).not.toBeNull();
+
+      pressKey(fixture, 'ArrowRight');
+      expect(magazine.state()).toBe('opening');
+      endFlip(fixture);
+
+      expect(magazine.state()).toBe('open');
+      expect(magazine.currentSpread()).toBe(1);
+    });
+
+    it('should do nothing with ArrowLeft while the magazine is closed', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      collection.select('a');
+      fixture.detectChanges();
+      endModalTransition(fixture);
+
+      pressKey(fixture, 'ArrowLeft');
+
+      expect(magazineAt(fixture, 0).state()).toBe('closed');
+      expect(collection.phase()).toBe('shown');
+    });
+
+    it('should ignore the arrows while a flip is running', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      toReading(fixture, collection, 'a');
+
+      const magazine = magazineAt(fixture, 0);
+
+      pressKey(fixture, 'ArrowRight');
+      expect(magazine.flip()?.targetSpread).toBe(2);
+
+      pressKey(fixture, 'ArrowRight');
+      pressKey(fixture, 'ArrowLeft');
+      expect(magazine.flip()?.targetSpread).toBe(2);
+
+      endFlip(fixture);
+
+      expect(magazine.currentSpread()).toBe(2);
+    });
+
+    it('should not stop at the last spread', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      toReading(fixture, collection, 'a');
+
+      const magazine = magazineAt(fixture, 0);
+
+      pressKey(fixture, 'ArrowRight');
+      endFlip(fixture);
+      expect(magazine.currentSpread()).toBe(2);
+
+      pressKey(fixture, 'ArrowRight');
+
+      expect(magazine.currentSpread()).toBe(2);
+      expect(magazine.isAnimating()).toBe(false);
+    });
+
+    it('should ignore the arrows with modifier keys', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      collection.select('a');
+      fixture.detectChanges();
+      endModalTransition(fixture);
+
+      for (const init of [
+        { ctrlKey: true },
+        { altKey: true },
+        { metaKey: true },
+        { shiftKey: true },
+      ]) {
+        const event = pressKey(fixture, 'ArrowRight', init);
+        expect(event.defaultPrevented).toBe(false);
+      }
+
+      expect(magazineAt(fixture, 0).state()).toBe('closed');
+    });
+
+    it('should ignore the arrows coming from form fields, video or audio', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      collection.select('a');
+      fixture.detectChanges();
+      endModalTransition(fixture);
+
+      const stage = root(fixture).querySelector('.modal__stage') as HTMLElement;
+
+      for (const tag of ['input', 'textarea', 'select', 'video', 'audio']) {
+        const element = document.createElement(tag);
+        stage.appendChild(element);
+
+        const event = pressKey(fixture, 'ArrowRight', {}, element);
+
+        expect(event.defaultPrevented).toBe(false);
+        expect(magazineAt(fixture, 0).state()).toBe('closed');
+
+        element.remove();
+      }
+    });
+
+    it('should ignore other keys and not touch Escape handling', async () => {
+      const fixture = await setup();
+      const collection = getCollection(fixture);
+
+      collection.select('a');
+      fixture.detectChanges();
+      endModalTransition(fixture);
+
+      const event = pressKey(fixture, 'ArrowUp');
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(magazineAt(fixture, 0).state()).toBe('closed');
+
+      const cancel = new Event('cancel', { cancelable: true });
+      dialog(fixture)!.dispatchEvent(cancel);
+      cdAll(fixture);
+
+      expect(cancel.defaultPrevented).toBe(true);
+      expect(collection.phase()).toBe('leaving');
     });
   });
 });

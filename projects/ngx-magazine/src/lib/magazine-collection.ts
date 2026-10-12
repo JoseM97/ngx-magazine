@@ -44,20 +44,33 @@ export interface MagazineCollectionEvent {
       width: 100%;
     }
 
-    /* Contenedor de consulta: solo contiene, no participa en el 3D. */
+    /*
+     * Contenedor de consulta: las medidas fluidas (cqw) y las columnas se
+     * calculan sobre el ancho de la colección, no sobre el de la ventana.
+     */
     .collection {
       container-type: inline-size;
       width: 100%;
     }
 
-    /* Superficie de la mesa. La perspectiva es de cada revista, no de la mesa. */
+    /*
+     * Superficie de la mesa: transparente por defecto. Un color o fondo
+     * propio se indica con --ngx-magazine-table-background.
+     * Margen lateral mínimo de 2rem: deja sitio a la estrella de cómic, que
+     * sobresale por la derecha de la portada.
+     */
     .table {
-      padding: 4rem 3rem 5rem;
+      padding:
+        clamp(2.5rem, 8cqw, 4rem)
+        clamp(2rem, 5cqw, 3rem)
+        clamp(3rem, 9cqw, 5rem);
+      background: var(--ngx-magazine-table-background, transparent);
     }
 
     /*
      * Rejilla plana: todas las revistas ocupan celdas del mismo tamaño.
-     * Primer valor de gap = entre filas; segundo = entre columnas.
+     * Primer valor de gap = entre filas; segundo = entre columnas. Si el
+     * consumidor no los indica, se adaptan al ancho de la colección.
      */
     .grid {
       display: grid;
@@ -65,11 +78,13 @@ export interface MagazineCollectionEvent {
         var(--ngx-magazine-cols, var(--auto-cols, 2)),
         minmax(0, 1fr)
       );
-      gap: var(--ngx-magazine-row-gap, 4.5rem) var(--ngx-magazine-gap, 3rem);
+      gap:
+        var(--ngx-magazine-row-gap, clamp(2.25rem, 7cqw, 4.5rem))
+        var(--ngx-magazine-gap, clamp(1rem, 5cqw, 3rem));
       align-items: start;
     }
 
-    @container (min-width: 720px) {
+    @container (min-width: 480px) {
       .grid {
         --auto-cols: 3;
       }
@@ -81,10 +96,16 @@ export class NgxMagazineCollection {
   readonly columns = input<number | null>(null);
   /** Giro de cada revista sobre su eje vertical, en grados. */
   readonly tilt = input(24);
-  /** Separación horizontal entre revistas (cualquier longitud CSS). */
-  readonly gap = input('3rem');
-  /** Separación vertical entre filas (cualquier longitud CSS). */
-  readonly rowGap = input('4.5rem');
+  /**
+   * Separación horizontal entre revistas (cualquier longitud CSS).
+   * Si es `null`, se adapta al ancho de la colección.
+   */
+  readonly gap = input<string | null>(null);
+  /**
+   * Separación vertical entre filas (cualquier longitud CSS).
+   * Si es `null`, se adapta al ancho de la colección.
+   */
+  readonly rowGap = input<string | null>(null);
   /** Nombre accesible de la colección. */
   readonly label = input('Magazine collection');
 

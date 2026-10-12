@@ -22,6 +22,10 @@ const MODAL_TRANSITION_MS = 380;
 /** Si `transitionend` no llega, la fase avanza igualmente. */
 const MODAL_FALLBACK_MS = MODAL_TRANSITION_MS + 400;
 
+/** Elementos en los que las flechas tienen su propio significado. */
+const KEY_IGNORED_TARGETS =
+  'input, textarea, select, video, audio, [contenteditable=""], [contenteditable="true"]';
+
 /**
  * Una revista dentro de una colección. Su portada es la página 0 del
  * `<ngx-magazine>` que contiene: el consumidor no la define dos veces.
@@ -32,9 +36,12 @@ const MODAL_FALLBACK_MS = MODAL_TRANSITION_MS + 400;
  *
  * Al seleccionarla, el `<ngx-magazine>` real se proyecta dentro de una
  * modal (`<dialog>`) sobre un fondo oscurecido: aparece cerrado y centrado,
- * y el usuario lo abre con › o con un clic en la portada. La modal tiene un
- * aspecto sencillo (sin contorno ni esquinas redondeadas); el estilo de
- * cómic es solo el de la mesa.
+ * y el usuario lo abre con › (o la flecha →) o con un clic en la portada.
+ * La modal tiene un aspecto sencillo (sin contorno ni esquinas redondeadas);
+ * el estilo de cómic es solo el de la mesa.
+ *
+ * Teclado dentro de la modal: → abre o pasa de pliego, ← retrocede (desde el
+ * pliego 1 cierra el libro) y Escape cierra la modal.
  *
  * Variables CSS opcionales:
  * - `--ngx-magazine-thickness`: grosor de la revista (por defecto 12px).
@@ -106,6 +113,7 @@ const MODAL_FALLBACK_MS = MODAL_TRANSITION_MS + 400;
         (cancel)="onCancel($event)"
         (close)="onNativeClose()"
         (click)="onDialogClick($event)"
+        (keydown)="onKeydown($event)"
       >
         <div class="modal__scrim" [class.is-visible]="visible()"></div>
 
@@ -387,8 +395,11 @@ const MODAL_FALLBACK_MS = MODAL_TRANSITION_MS + 400;
       overflow-wrap: anywhere;
     }
 
-    /* Estilo de cómic al pasar el ratón, enfocar o seleccionar. */
-    .item__cover:hover .item__scene,
+    /*
+     * Estilo de cómic al enfocar con teclado o al estar seleccionada.
+     * El mismo estilo con el ratón va más abajo, solo en dispositivos con
+     * hover real: en táctil, :hover se queda pegado tras tocar.
+     */
     .item__cover:focus-visible .item__scene,
     :host(.is-selected) .item__scene {
       filter: drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink))
@@ -396,30 +407,52 @@ const MODAL_FALLBACK_MS = MODAL_TRANSITION_MS + 400;
         drop-shadow(6px 6px 0 var(--ink));
     }
 
-    .item__cover:hover .book,
     .item__cover:focus-visible .book,
     :host(.is-selected) .book {
       transform: translate3d(0, -6px, 16px)
         rotateY(var(--ngx-magazine-tilt, 24deg));
     }
 
-    .item__cover:hover .item__shadow,
     .item__cover:focus-visible .item__shadow,
     :host(.is-selected) .item__shadow {
       opacity: 0;
     }
 
-    .item__cover:hover .book__front::before,
     .item__cover:focus-visible .book__front::before,
     :host(.is-selected) .book__front::before {
       opacity: 0.45;
     }
 
-    .item__cover:hover .item__burst,
     .item__cover:focus-visible .item__burst,
     :host(.is-selected) .item__burst {
       opacity: 1;
       transform: scale(1) rotate(12deg);
+    }
+
+    @media (hover: hover) {
+      .item__cover:hover .item__scene {
+        filter: drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink))
+          drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink))
+          drop-shadow(6px 6px 0 var(--ink));
+      }
+
+      .item__cover:hover .book {
+        transform: translate3d(0, -6px, 16px)
+          rotateY(var(--ngx-magazine-tilt, 24deg));
+      }
+
+      .item__cover:hover .item__shadow {
+        opacity: 0;
+      }
+
+      .item__cover:hover .book__front::before {
+        opacity: 0.45;
+      }
+
+      .item__cover:hover .item__burst {
+        opacity: 1;
+        transform: scale(1) rotate(12deg);
+      }
     }
 
     /*
@@ -478,15 +511,17 @@ const MODAL_FALLBACK_MS = MODAL_TRANSITION_MS + 400;
     }
 
     /*
-     * Caja 3:2 (un pliego) que cabe siempre en el viewport. La revista
-     * cerrada se dibuja centrada (una página 3:4) y, al abrirse, el libro
-     * ocupa el pliego completo. Sin sombra por página ni contorno; la
-     * elevación es un halo ambiental difuso (--ngx-magazine-modal-shadow).
+     * Pliego 3:2 que cabe siempre en el viewport. El alto disponible
+     * descuenta 96px: los 56px de la píldora de controles (que va bajo el
+     * libro) y un margen. La revista cerrada se dibuja centrada (una página
+     * 3:4) y, al abrirse, el libro ocupa el pliego completo. Sin sombra por
+     * página ni contorno; la elevación es un halo ambiental difuso
+     * (--ngx-magazine-modal-shadow).
      */
     .modal__book {
       position: relative;
-      width: min(92vw, calc(78vh * 3 / 2));
-      width: min(92vw, calc(78dvh * 3 / 2));
+      width: min(92vw, calc((100vh - 96px) * 3 / 2));
+      width: min(92vw, calc((100dvh - 96px) * 3 / 2));
       opacity: 0;
       transform: translateY(28px) scale(0.86);
       transition:
@@ -508,11 +543,19 @@ const MODAL_FALLBACK_MS = MODAL_TRANSITION_MS + 400;
       transform: none;
     }
 
+    /* Pantallas estrechas: el libro aprovecha casi todo el ancho. */
+    @media (max-width: 600px) {
+      .modal__book {
+        width: min(96vw, calc((100vh - 96px) * 3 / 2));
+        width: min(96vw, calc((100dvh - 96px) * 3 / 2));
+      }
+    }
+
     /* Botón de cierre: círculo de cristal oscuro con una × de trazo fino. */
     .modal__close {
       position: absolute;
-      top: 16px;
-      right: 16px;
+      top: max(16px, env(safe-area-inset-top));
+      right: max(16px, env(safe-area-inset-right));
       display: grid;
       place-items: center;
       width: 40px;
@@ -529,6 +572,13 @@ const MODAL_FALLBACK_MS = MODAL_TRANSITION_MS + 400;
       transition:
         opacity 300ms ease-out,
         background 150ms ease-out;
+    }
+
+    @media (pointer: coarse) {
+      .modal__close {
+        width: 44px;
+        height: 44px;
+      }
     }
 
     .modal__close svg {
@@ -650,6 +700,52 @@ export class NgxMagazineItem {
     this.requestClose();
   }
 
+  /**
+   * Flechas dentro de la modal: → abre la revista o pasa de pliego, ←
+   * retrocede (desde el pliego 1 cierra el libro). Se respetan las mismas
+   * reglas que los botones: nada ocurre durante un giro ni mientras la modal
+   * aparece. Se ignoran con modificadores y sobre controles que usan las
+   * flechas (campos de texto, vídeo, audio...).
+   */
+  protected onKeydown(event: KeyboardEvent): void {
+    if (event.defaultPrevented) {
+      return;
+    }
+
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+      return;
+    }
+
+    if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
+      return;
+    }
+
+    const target = event.target as Element | null;
+
+    if (target?.closest?.(KEY_IGNORED_TARGETS)) {
+      return;
+    }
+
+    const phase = this.collection?.phase();
+    const magazine = this.magazine();
+
+    if (!magazine || (phase !== 'shown' && phase !== 'reading')) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (event.key === 'ArrowRight') {
+      if (magazine.state() === 'closed') {
+        magazine.open();
+      } else {
+        magazine.nextSpread();
+      }
+    } else {
+      magazine.previousSpread();
+    }
+  }
+
   /** Clic fuera de la revista y del botón: cierra. */
   protected onDialogClick(event: MouseEvent): void {
     const target = event.target as Element | null;
@@ -740,7 +836,7 @@ export class NgxMagazineItem {
     }
 
     if (phase === 'shown' && magazineState === 'opening') {
-      // El usuario ha abierto la revista (›, o clic en la portada).
+      // El usuario ha abierto la revista (›, flecha →, o clic en la portada).
       this.collection.startOpen();
     } else if (phase === 'shown' && magazineState === 'open') {
       // La apertura terminó antes de que se reflejara la fase.
