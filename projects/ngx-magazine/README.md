@@ -1,10 +1,10 @@
 # ngx-magazine
 
-Angular components to show HTML content as an interactive magazine with a realistic 3D page flip, plus a 3D "table" collection where each magazine opens in a modal.
+Angular components to show HTML content as an interactive magazine with a realistic 3D page flip, plus a 3D collection of magazines that open in a modal.
 
 - Pages are plain `ng-template`s: text, images, video or Angular components.
 - Standalone components, signals, no external dependencies.
-- Respects `prefers-reduced-motion`.
+- Keyboard support, touch-friendly controls and `prefers-reduced-motion`.
 
 ## Installation
 
@@ -36,7 +36,7 @@ export class Example {
 }
 ```
 
-Each `ng-template` is one page. The first one is the cover. The magazine starts closed with the cover centered; the "Open" button (or `open()`) turns the cover like a lid. A magazine needs at least 2 pages to open.
+Each `ng-template` is one page. The first one is the cover. The magazine starts closed with the cover centered; the "Open" button (or `open()`) turns the cover like a lid while the book centers itself. A magazine needs at least 2 pages to open.
 
 ### `NgxMagazine` API
 
@@ -50,7 +50,7 @@ Each `ng-template` is one page. The first one is the cover. The magazine starts 
 | `nextSpread()` / `previousSpread()` | Navigate. `previousSpread()` on spread 1 closes the book. |
 | `state()` | `'closed' \| 'opening' \| 'open' \| 'closing'`. |
 | `isAnimating()` | `true` while a sheet is turning. Navigation is blocked meanwhile. |
-| `currentSpread()`, `totalSpreads()`, `leftPage()`, `rightPage()` | Signals / functions with the current position (0-based page indexes). |
+| `currentSpread()`, `totalSpreads()`, `leftPage()`, `rightPage()` | Current position (0-based page indexes). |
 
 ### CSS variables
 
@@ -63,7 +63,7 @@ Each `ng-template` is one page. The first one is the cover. The magazine starts 
 | `--ngx-magazine-page-shadow` | soft shadow | `box-shadow` of static pages. |
 | `--ngx-magazine-face-shadow` | soft shadow | `box-shadow` of the turning sheet. |
 | `--ngx-magazine-overflow` | `hidden` | `overflow` of the container. |
-| `--ngx-magazine-controls-space` | `56px` | Space reserved under the book for the controls. |
+| `--ngx-magazine-controls-space` | `56px` (`68px` on touch) | Space reserved under the book for the controls. |
 
 ## A collection of magazines
 
@@ -83,25 +83,37 @@ Each `ng-template` is one page. The first one is the cover. The magazine starts 
 </ngx-magazine-collection>
 ```
 
-The cover on the table is page 0 of the inner `<ngx-magazine>`: you define it only once. Clicking (or Enter / Space on) a cover opens the magazine in a modal over a darkened page. The magazine starts closed and centered; the user opens it with › or by clicking the cover. Close with ×, Escape or clicking outside.
+The cover on the table is page 0 of the inner `<ngx-magazine>`: you define it only once. Clicking (or Enter / Space on) a cover opens the magazine in a modal over a darkened page. The magazine starts closed and centered; the user opens it with ›, the → key, or by clicking the cover. Close with ×, Escape or clicking outside.
+
+### Keyboard (inside the modal)
+
+| Key | Action |
+| --- | --- |
+| `→` | Opens the magazine, or goes to the next spread. |
+| `←` | Previous spread. From spread 1 it closes the book. |
+| `Esc` | Closes the modal. |
+
+Arrows are ignored with Ctrl/Alt/Meta/Shift and when focus is on an `input`, `textarea`, `select`, `video`, `audio` or editable element.
 
 ### `NgxMagazineCollection`
 
 | Input | Default | Description |
 | --- | --- | --- |
-| `columns` | auto (2, or 3 from 720px) | Number of columns. |
+| `columns` | auto (2, or 3 from 480px) | Number of columns. |
 | `tilt` | `24` | Rotation of each magazine, in degrees. |
-| `gap` | `3rem` | Horizontal gap. |
-| `rowGap` | `4.5rem` | Vertical gap between rows. |
+| `gap` | fluid | Horizontal gap (any CSS length). |
+| `rowGap` | fluid | Vertical gap between rows (any CSS length). |
 | `label` | `Magazine collection` | Accessible name. |
 
 | Output | When |
 | --- | --- |
 | `magazineSelect` | A magazine is selected (modal starts to appear). |
-| `magazineOpen` | The cover finished opening for the first time. |
+| `magazineOpen` | The cover finished opening. |
 | `magazineClose` | The magazine finished closing and the modal disappeared. |
 
 Methods: `select(id)`, `close()`. Signals: `selectedId()`, `phase()` (`idle`, `entering`, `shown`, `opening`, `reading`, `closing`, `leaving`).
+
+The table is transparent by default; set `--ngx-magazine-table-background` for a color or image.
 
 ### `NgxMagazineItem`
 
@@ -112,7 +124,7 @@ Methods: `select(id)`, `close()`. Signals: `selectedId()`, `phase()` (`idle`, `e
 | `spineColor` | Color of the spine and back of the book on the table. |
 | `burstText` | Text of the burst shown on hover. Omit to use `label`; `""` hides it. |
 
-Extra CSS variables: `--ngx-magazine-thickness` (`12px`), `--ngx-magazine-perspective` (`none`), `--ngx-magazine-ink` (`#111`), `--ngx-magazine-pop` (`#ffd400`), `--ngx-magazine-burst-size` (`70%`), `--ngx-magazine-modal-shadow`, `--ngx-magazine-focus-ring` (`none`).
+Extra CSS variables: `--ngx-magazine-table-background` (`transparent`, on the collection), `--ngx-magazine-thickness` (`12px`), `--ngx-magazine-perspective` (`none`), `--ngx-magazine-ink` (`#111`), `--ngx-magazine-pop` (`#ffd400`), `--ngx-magazine-burst-size` (`70%`), `--ngx-magazine-modal-shadow`, `--ngx-magazine-focus-ring` (`none`).
 
 ## Page content
 
@@ -127,8 +139,10 @@ The library does not style your content: it gives each page a box of the page si
 ### Known limitations
 
 - A page is re-created when it moves between the turning sheet and the static layer, so a `<video>` or form state inside a page resets on every flip.
-- On the table, a cover is also instantiated inside the modal's magazine (only rendered once the modal opens).
+- On the table, a cover is also instantiated inside the modal's magazine (only rendered once the modal opens). A cover with autoplay video would play twice.
 - Closing a magazine always returns to the cover.
+- The spread always shows two pages; on narrow phones each page is small. There is no single-page mode and no swipe gesture yet.
+- Arrow keys are not mirrored for right-to-left languages.
 
 ## License
 

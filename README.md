@@ -1,59 +1,149 @@
-# NgxMagazineWorkspace
+# ngx-magazine
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.1.
+Angular components to show HTML content as an interactive magazine with a realistic 3D page flip, plus a 3D collection of magazines that open in a modal.
 
-## Development server
+- Pages are plain `ng-template`s: text, images, video or Angular components.
+- Standalone components, signals, no external dependencies.
+- Keyboard support, touch-friendly controls and `prefers-reduced-motion`.
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Installation
 
 ```bash
-ng generate component component-name
+npm install ngx-magazine
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Requires `@angular/core` and `@angular/common` `^22.2.0`.
 
-```bash
-ng generate --help
+## A single magazine
+
+```ts
+import { Component } from '@angular/core';
+import { MagazinePage, NgxMagazine } from 'ngx-magazine';
+
+@Component({
+  selector: 'app-example',
+  imports: [NgxMagazine, MagazinePage],
+  template: `
+    <ngx-magazine (pageChange)="onChange($event)">
+      <ng-template ngxMagazinePage><h1>Cover</h1></ng-template>
+      <ng-template ngxMagazinePage><h2>Page 2</h2></ng-template>
+      <ng-template ngxMagazinePage><h2>Page 3</h2></ng-template>
+    </ngx-magazine>
+  `,
+})
+export class Example {
+  onChange(event: unknown) {}
+}
 ```
 
-## Building
+Each `ng-template` is one page. The first one is the cover. The magazine starts closed with the cover centered; the "Open" button (or `open()`) turns the cover like a lid while the book centers itself. A magazine needs at least 2 pages to open.
 
-To build the project run:
+### `NgxMagazine` API
 
-```bash
-ng build
+| Member | Description |
+| --- | --- |
+| `(pageChange)` | Emits `{ currentSpread, totalSpreads, leftPage, rightPage }` when a flip finishes. |
+| `(opened)` / `(closed)` | The cover finished opening / closing. |
+| `open()` | Opens the magazine (cover flips to spread 1). |
+| `close()` | Closes it, always from the cover. From any spread it goes to spread 1 and the cover flips back. |
+| `reset()` | Closes instantly, without animation. |
+| `nextSpread()` / `previousSpread()` | Navigate. `previousSpread()` on spread 1 closes the book. |
+| `state()` | `'closed' \| 'opening' \| 'open' \| 'closing'`. |
+| `isAnimating()` | `true` while a sheet is turning. Navigation is blocked meanwhile. |
+| `currentSpread()`, `totalSpreads()`, `leftPage()`, `rightPage()` | Current position (0-based page indexes). |
+
+### CSS variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `--ngx-magazine-max-width` | `900px` | Maximum width. |
+| `--ngx-magazine-background` | `#e8e3dc` | Background behind the pages. |
+| `--ngx-magazine-paper` | `white` | Page background color. |
+| `--ngx-magazine-radius` | `3px` | Outer corner radius of the pages. |
+| `--ngx-magazine-page-shadow` | soft shadow | `box-shadow` of static pages. |
+| `--ngx-magazine-face-shadow` | soft shadow | `box-shadow` of the turning sheet. |
+| `--ngx-magazine-overflow` | `hidden` | `overflow` of the container. |
+| `--ngx-magazine-controls-space` | `56px` (`68px` on touch) | Space reserved under the book for the controls. |
+
+## A collection of magazines
+
+```html
+<ngx-magazine-collection
+  label="My magazines"
+  (magazineSelect)="onSelect($event)"
+  (magazineOpen)="onOpen($event)"
+  (magazineClose)="onClose($event)"
+>
+  <ngx-magazine-item id="travel" label="Travel" spineColor="#2f7f8f" burstText="New!">
+    <ngx-magazine>
+      <ng-template ngxMagazinePage>…cover…</ng-template>
+      <ng-template ngxMagazinePage>…page 2…</ng-template>
+    </ngx-magazine>
+  </ngx-magazine-item>
+</ngx-magazine-collection>
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+The cover on the table is page 0 of the inner `<ngx-magazine>`: you define it only once. Clicking (or Enter / Space on) a cover opens the magazine in a modal over a darkened page. The magazine starts closed and centered; the user opens it with ›, the → key, or by clicking the cover. Close with ×, Escape or clicking outside.
 
-## Running unit tests
+### Keyboard (inside the modal)
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+| Key | Action |
+| --- | --- |
+| `→` | Opens the magazine, or goes to the next spread. |
+| `←` | Previous spread. From spread 1 it closes the book. |
+| `Esc` | Closes the modal. |
 
-```bash
-ng test
+Arrows are ignored with Ctrl/Alt/Meta/Shift and when focus is on an `input`, `textarea`, `select`, `video`, `audio` or editable element.
+
+### `NgxMagazineCollection`
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `columns` | auto (2, or 3 from 480px) | Number of columns. |
+| `tilt` | `24` | Rotation of each magazine, in degrees. |
+| `gap` | fluid | Horizontal gap (any CSS length). |
+| `rowGap` | fluid | Vertical gap between rows (any CSS length). |
+| `label` | `Magazine collection` | Accessible name. |
+
+| Output | When |
+| --- | --- |
+| `magazineSelect` | A magazine is selected (modal starts to appear). |
+| `magazineOpen` | The cover finished opening. |
+| `magazineClose` | The magazine finished closing and the modal disappeared. |
+
+Methods: `select(id)`, `close()`. Signals: `selectedId()`, `phase()` (`idle`, `entering`, `shown`, `opening`, `reading`, `closing`, `leaving`).
+
+The table is transparent by default; set `--ngx-magazine-table-background` for a color or image.
+
+### `NgxMagazineItem`
+
+| Input | Description |
+| --- | --- |
+| `id` (required) | Unique id inside the collection. |
+| `label` | Accessible name (and default text of the comic burst). |
+| `spineColor` | Color of the spine and back of the book on the table. |
+| `burstText` | Text of the burst shown on hover. Omit to use `label`; `""` hides it. |
+
+Extra CSS variables: `--ngx-magazine-table-background` (`transparent`, on the collection), `--ngx-magazine-thickness` (`12px`), `--ngx-magazine-perspective` (`none`), `--ngx-magazine-ink` (`#111`), `--ngx-magazine-pop` (`#ffd400`), `--ngx-magazine-burst-size` (`70%`), `--ngx-magazine-modal-shadow`, `--ngx-magazine-focus-ring` (`none`).
+
+## Page content
+
+The library does not style your content: it gives each page a box of the page size. A full-page image:
+
+```html
+<ng-template ngxMagazinePage>
+  <img src="photo.jpg" alt="" style="width:100%;height:100%;object-fit:cover;display:block" />
+</ng-template>
 ```
 
-## Running end-to-end tests
+### Known limitations
 
-For end-to-end (e2e) testing, run:
+- A page is re-created when it moves between the turning sheet and the static layer, so a `<video>` or form state inside a page resets on every flip.
+- On the table, a cover is also instantiated inside the modal's magazine (only rendered once the modal opens). A cover with autoplay video would play twice.
+- Closing a magazine always returns to the cover.
+- The spread always shows two pages; on narrow phones each page is small. There is no single-page mode and no swipe gesture yet.
+- Arrow keys are not mirrored for right-to-left languages.
 
-```bash
-ng e2e
-```
+## License
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+MIT
