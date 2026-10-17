@@ -156,7 +156,7 @@ const FLIP_FALLBACK_MS = FLIP_DURATION_MS + 400;
             (click)="open()"
             [disabled]="pages().length < 2"
           >
-            Abrir revista
+            Open magazine
           </button>
         }
       </div>
@@ -441,7 +441,7 @@ const FLIP_FALLBACK_MS = FLIP_DURATION_MS + 400;
       }
     }
 
-    /* Botón «Abrir revista» (solo revista individual). */
+    /* Botón «Open magazine» (solo revista individual). */
     .magazine__open {
       position: absolute;
       z-index: 10;

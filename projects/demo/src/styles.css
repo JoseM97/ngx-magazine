@@ -1,1 +1,336 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --ink: #111;
+  --pop: #ffd400;
+  --bg: #f6f3ee;
+  --muted: #5d5a54;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+.d-wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* Cabecera */
+.d-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 0;
+}
+
+.d-logo {
+  font: 400 1.4rem Impact, 'Arial Black', sans-serif;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+}
+
+.d-nav nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  font-weight: 600;
+}
+
+.d-nav nav a {
+  text-decoration: none;
+}
+
+.d-nav nav a:hover {
+  text-decoration: underline;
+}
+
+a:focus-visible,
+.d-btn:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Hero */
+.d-hero {
+  padding: 3rem 0 1.5rem;
+  text-align: center;
+}
+
+.d-hero h1 {
+  margin: 0;
+  font: 400 clamp(2.6rem, 9vw, 5rem) / 1 Impact, 'Arial Black', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-shadow: 4px 4px 0 var(--pop);
+}
+
+.d-lead {
+  max-width: 40rem;
+  margin: 1.25rem auto 1.75rem;
+  font-size: 1.15rem;
+  color: var(--muted);
+}
+
+.d-install {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.4rem 0.4rem 1.25rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font: 0.95rem ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.d-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  background: var(--pop);
+  color: var(--ink);
+  font: 700 0.85rem system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.d-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+  font-weight: 600;
+}
+
+/* Secciones */
+.d-section {
+  padding: 2.5rem 0;
+}
+
+.d-section h2 {
+  margin: 0 0 0.5rem;
+  font: 400 clamp(1.8rem, 5vw, 2.6rem) / 1.1 Impact, 'Arial Black', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.d-hint {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+}
+
+.d-table {
+  background: #ebe5db;
+  border-radius: 28px;
+}
+
+.d-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.25rem;
+}
+
+.d-card {
+  padding: 1.25rem;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.d-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.d-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.d-single {
+  --ngx-magazine-max-width: 780px;
+}
+
+.d-log,
+.d-code {
+  margin: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: #f3f0e8;
+  font: 0.85rem/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+  overflow: auto;
+}
+
+.d-code {
+  padding: 1.25rem;
+}
+
+.d-log {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.d-foot {
+  padding: 2rem 0 3rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Portadas y páginas de las revistas (medidas en cqw: escalan con la página) */
+.d-cover,
+.d-pg {
+  position: relative;
+  height: 100%;
+  container-type: size;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.d-cover {
+  background: linear-gradient(150deg, var(--c1), var(--c2));
+  color: #fff;
+}
+
+.d-cover__sun {
+  position: absolute;
+  right: -18cqw;
+  bottom: -12cqw;
+  width: 66cqw;
+  height: 66cqw;
+  border-radius: 50%;
+  background: var(--pop);
+  box-shadow: 0 0 0 2cqw var(--ink);
+}
+
+.d-cover__in,
+.d-pg__in {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8cqw;
+}
+
+.d-cover__in {
+  z-index: 1;
+  justify-content: space-between;
+}
+
+.d-cover__top {
+  font-size: 4.2cqw;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.d-cover__title {
+  margin: 0;
+  font: 400 13cqw / 0.95 Impact, 'Arial Black', sans-serif;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  text-shadow: 0.8cqw 0.8cqw 0 var(--ink);
+}
+
+.d-cover__tag {
+  max-width: 48%;
+  margin: 0;
+  font-size: 5cqw;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.d-pg {
+  background: #fffdf8;
+  color: #25231f;
+}
+
+.d-pg__in {
+  gap: 4cqw;
+}
+
+.d-pg__kicker {
+  font-size: 3.6cqw;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--c1);
+}
+
+.d-pg__h {
+  margin: 0;
+  font: 700 8.5cqw / 1.1 Georgia, 'Times New Roman', serif;
+}
+
+.d-pg__p,
+.d-pg__list {
+  margin: 0;
+  font-size: 4.6cqw;
+  line-height: 1.5;
+}
+
+.d-pg__list {
+  display: grid;
+  gap: 2.5cqw;
+  padding-left: 1.2em;
+}
+
+.d-pg__art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  height: 46cqw;
+  border-radius: 2cqw;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  color: #fff;
+  font: 400 24cqw / 1 Impact, 'Arial Black', sans-serif;
+}
+
+.d-pg--dark {
+  background: linear-gradient(160deg, var(--c1), var(--c2));
+  color: #fff;
+}
+
+.d-pg--dark .d-pg__in {
+  justify-content: center;
+}
+
+.d-pg__q {
+  margin: 0;
+  font: italic 700 8.5cqw / 1.2 Georgia, 'Times New Roman', serif;
+}
+
+.d-pg__by {
+  font-size: 4cqw;
+  opacity: 0.85;
+}
+
+.d-pg__n {
+  position: absolute;
+  right: 0;
+  bottom: 4cqw;
+  left: 0;
+  text-align: center;
+  font-size: 3.4cqw;
+  opacity: 0.55;
+}

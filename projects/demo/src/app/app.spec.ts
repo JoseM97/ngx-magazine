@@ -2,22 +2,20 @@ import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 
 describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-    }).compileComponents();
-  });
-
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', async () => {
+  it('should create the app', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, demo');
+
+    expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('should render one cover per demo magazine', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.querySelectorAll('ngx-magazine-item').length).toBe(9);
   });
 });
